@@ -6,7 +6,14 @@ export type Team = "A" | "B"
 
 export type EndReason = "clean" | "wrong_pocket" | "early_eight"
 
-export type Step = "winner" | "reason" | "balls" | "decide"
+export type Step = "continue" | "winner" | "reason" | "balls"
+// "decide" removed — no longer needed
+
+export interface OpenMatchSummary {
+  leadingTeamName: string
+  scoreA: number
+  scoreB: number
+}
 
 export type MatchFormat = "single" | "best_of_three"
 

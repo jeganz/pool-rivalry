@@ -128,7 +128,7 @@ function SingleGameRow({
         <ReasonBadge game={game} />
       </div>
       <span className="text-xs text-muted-foreground">
-        {date} · balls left {teamAName} {game.ballsLeftA} · {teamBName}{" "}
+        {date} · Balls left {teamAName} : {game.ballsLeftA} · {teamBName}{" : "}
         {game.ballsLeftB}
       </span>
     </div>
@@ -160,7 +160,7 @@ function GameRow({
             {winnerName} won
           </span>
           <span className="text-xs text-muted-foreground">
-            {teamAName} {game.ballsLeftA} · {teamBName} {game.ballsLeftB} left
+            {teamAName} : {game.ballsLeftA} · {teamBName} : {game.ballsLeftB} - Balls left
           </span>
         </div>
       </div>

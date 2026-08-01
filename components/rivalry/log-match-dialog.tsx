@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import type { BallsFieldConfig, EndReason, Step } from "@/lib/rivalry-types"
+import type { BallsFieldConfig, EndReason, OpenMatchSummary, Step } from "@/lib/rivalry-types"
 
 export interface LogMatchDialogProps {
   open: boolean
@@ -26,14 +26,19 @@ export interface LogMatchDialogProps {
   teamBName: string
   ballsFieldConfig?: BallsFieldConfig
   saving?: boolean
+  openMatch?: OpenMatchSummary | null
+  onContinueMatch: () => void
+  onStartNewMatch: () => void
   onPickWinner: (winner: "A" | "B") => void
   onPickReason: (reason: EndReason) => void
   onSubmitBalls: (ballsA: number, ballsB: number) => void
-  onEndAsSingle: () => void
-  onPlayItOut: () => void
 }
 
 const STEP_META: Record<Step, { title: string; description: string }> = {
+  continue: {
+    title: "Unfinished match",
+    description: "Pick up where you left off, or start something new.",
+  },
   winner: { title: "Who won this game?", description: "Tap the winning team." },
   reason: {
     title: "How did it end?",
@@ -42,10 +47,6 @@ const STEP_META: Record<Step, { title: string; description: string }> = {
   balls: {
     title: "Balls remaining",
     description: "How many object balls were still on the table.",
-  },
-  decide: {
-    title: "Keep playing?",
-    description: "End the match now or play the best of three.",
   },
 }
 
@@ -61,7 +62,7 @@ export function LogMatchDialog(props: LogMatchDialogProps) {
     saving,
   } = props
 
-  const midMatch = scoreA + scoreB > 0
+  const midMatch = step !== "continue" && scoreA + scoreB > 0
   const meta = STEP_META[step]
 
   return (
@@ -89,6 +90,26 @@ export function LogMatchDialog(props: LogMatchDialogProps) {
 
   function StepBody(p: LogMatchDialogProps) {
     switch (p.step) {
+      case "continue": {
+        const om = p.openMatch
+        const leaderName = om?.leadingTeamName === "A" ? teamAName : teamBName
+        return (
+          <div className="grid grid-cols-1 gap-3">
+            <ChoiceButton
+              label="Continue that match"
+              hint={om ? `${leaderName} leads ${om.scoreA}–${om.scoreB}` : undefined}
+              onClick={p.onContinueMatch}
+              disabled={saving}
+            />
+            <ChoiceButton
+              label="Start a new match"
+              hint="Leave the unfinished one as-is"
+              onClick={p.onStartNewMatch}
+              disabled={saving}
+            />
+          </div>
+        )
+      }
       case "winner":
         return (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -136,23 +157,6 @@ export function LogMatchDialog(props: LogMatchDialogProps) {
             saving={saving}
             onSubmit={p.onSubmitBalls}
           />
-        )
-      case "decide":
-        return (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ChoiceButton
-              label="End match here"
-              hint="Save as a single game"
-              onClick={p.onEndAsSingle}
-              disabled={saving}
-            />
-            <ChoiceButton
-              label="Play it out"
-              hint="Continue best of three"
-              onClick={p.onPlayItOut}
-              disabled={saving}
-            />
-          </div>
         )
       default:
         return null
@@ -226,20 +230,10 @@ function BallsStep({
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {config.showA ? (
-            <BallsField
-              id="balls-a"
-              label={teamAName}
-              value={ballsA}
-              onChange={setBallsA}
-            />
+            <BallsField id="balls-a" label={teamAName} value={ballsA} onChange={setBallsA} />
           ) : null}
           {config.showB ? (
-            <BallsField
-              id="balls-b"
-              label={teamBName}
-              value={ballsB}
-              onChange={setBallsB}
-            />
+            <BallsField id="balls-b" label={teamBName} value={ballsB} onChange={setBallsB} />
           ) : null}
         </div>
       )}
