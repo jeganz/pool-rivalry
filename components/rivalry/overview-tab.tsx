@@ -36,14 +36,15 @@ export function OverviewTab({ stats, loading }: OverviewTabProps) {
     { label: "Total matches", value: stats.totalMatches },
     { label: "Single-game", value: stats.singleGameMatches },
     { label: "Best-of-three", value: stats.bestOfThreeMatches },
-    { label: "Longest streak · " + teamAName, value: stats.longestStreakA },
+    {
+      label: "Win rate · " + (teamAMatchWins > teamBMatchWins ? teamAName : teamBName),
+      value: percent(Math.max(teamAMatchWins, teamBMatchWins), teamAMatchWins + teamBMatchWins),
+    },
     { label: `Best-of-3 wins · ${teamAName}`, value: stats.bestOfThreeWinsA },
     { label: `Best-of-3 wins · ${teamBName}`, value: stats.bestOfThreeWinsB },
+    { label: "Longest streak · " + teamAName, value: stats.longestStreakA },
     { label: "Longest streak · " + teamBName, value: stats.longestStreakB },
-    {
-      label: "Win rate · " + teamAName,
-      value: percent(teamAMatchWins, teamAMatchWins + teamBMatchWins),
-    },
+    
   ]
 
   const reasonItems: {

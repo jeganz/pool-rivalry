@@ -27,10 +27,11 @@ export function useOverviewStats() {
       const { data: games, error: gamesErr } = await supabase
         .from("pool_games")
         .select("*")
+        .order("created_at", { ascending: false })
       if (gamesErr) throw gamesErr
 
-      const teamAMatchWins = matches.filter((m) => m.winning_team === "A").length
-      const teamBMatchWins = matches.filter((m) => m.winning_team === "B").length
+      const teamAMatchWins = games.filter((m) => m.winner === "A").length
+      const teamBMatchWins = games.filter((m) => m.winner === "B").length
 
       const bestOfThreeWinsA = matches.filter(
         (m) => m.format === "best_of_three" && m.winning_team === "A",
@@ -46,23 +47,23 @@ export function useOverviewStats() {
       }
 
       let currentStreak: OverviewStats["currentStreak"] = null
-      if (matches.length > 0) {
-        const team = matches[0].winning_team as "A" | "B"
+      if (games.length > 0) {
+        const team = games[0].winner as "A" | "B"
         let count = 1
-        for (let i = 1; i < matches.length; i++) {
-          if (matches[i].winning_team === team) count++
+        for (let i = 1; i < games.length; i++) {
+          if (games[i].winner === team) count++
           else break
         }
         currentStreak = { team, count }
       }
 
-      const chron = [...matches].reverse()
+      const chron = [...games].reverse()
       let longestStreakA = 0
       let longestStreakB = 0
       let runA = 0
       let runB = 0
       for (const m of chron) {
-        if (m.winning_team === "A") {
+        if (m.winner === "A") {
           runA++
           runB = 0
           longestStreakA = Math.max(longestStreakA, runA)
@@ -79,7 +80,7 @@ export function useOverviewStats() {
         teamAMatchWins,
         teamBMatchWins,
         currentStreak,
-        totalMatches: matches.length,
+        totalMatches: games.length,
         singleGameMatches: matches.filter((m) => m.format === "single").length,
         bestOfThreeMatches: matches.filter((m) => m.format === "best_of_three").length,
         bestOfThreeWinsA,
