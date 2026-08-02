@@ -2,8 +2,19 @@
 
 import { Inbox, Trash2 } from "lucide-react"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -70,8 +81,11 @@ export function HistoryTab({
                   </span>
                 </div>
                 <DeleteButton
-                  onClick={() => onDeleteMatch(match.id)}
+                  onConfirm={() => onDeleteMatch(match.id)}
                   label={`Delete match from ${match.date}`}
+                  description={`This will permanently delete the ${match.date} match (${teamName(
+                    match.winningTeam,
+                  )} won, ${bestOfThreeScore(match)}) and all its games.`}
                 />
               </div>
               <div className="mx-4 flex flex-col divide-y rounded-lg bg-background ring-1 ring-foreground/10">
@@ -97,8 +111,11 @@ export function HistoryTab({
                 teamBName={teamBName}
               />
               <DeleteButton
-                onClick={() => onDeleteMatch(match.id)}
+                onConfirm={() => onDeleteMatch(match.id)}
                 label={`Delete match from ${match.date}`}
+                description={`This will permanently delete the ${match.date} match (${
+                  match.games[0].winner === "A" ? teamAName : teamBName
+                } won).`}
               />
             </Card>
           </li>
@@ -170,34 +187,55 @@ function GameRow({
 }
 
 function ReasonBadge({ game }: { game: GameResult }) {
-  const isFoul = game.endReason !== "clean"
+  const reasonStyles: Record<GameResult["endReason"], string> = {
+    clean: "border-brand/30 text-brand",
+    wrong_pocket: "border-amber-500/30 text-amber-700 dark:text-amber-400",
+    early_eight: "border-orange-500/30 text-orange-700 dark:text-orange-400",
+  }
+
   return (
-    <Badge
-      variant={isFoul ? "outline" : "secondary"}
-      className={cn(!isFoul && "bg-brand-muted text-brand")}
-    >
+    <Badge variant="outline" className={reasonStyles[game.endReason]}>
       {END_REASON_LABEL[game.endReason]}
     </Badge>
   )
 }
 
 function DeleteButton({
-  onClick,
+  onConfirm,
   label,
+  description,
 }: {
-  onClick: () => void
+  onConfirm: () => void
   label: string
+  description: string
 }) {
   return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      onClick={onClick}
-      aria-label={label}
-      className="shrink-0 text-muted-foreground hover:text-destructive"
-    >
-      <Trash2 />
-    </Button>
+    <AlertDialog>
+      <AlertDialogTrigger
+        aria-label={label}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon-sm" }),
+          "shrink-0 text-muted-foreground hover:text-destructive",
+        )}
+      >
+        <Trash2 />
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this match?</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
